@@ -1,0 +1,1215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1024">
+<title>Universe Vault</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Mono:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --void: #04040e;
+  --abyss: #07071a;
+  --navy: #0c0e2a;
+  --deep: #111435;
+  --nebula: #6b3fa0;
+  --nebula-dim: #3d2566;
+  --violet: #8b5cf6;
+  --violet-glow: rgba(139,92,246,0.35);
+  --rose: #c97b8a;
+  --rose-dim: #7a3d4a;
+  --dust: #a78bfa;
+  --dust-dim: rgba(167,139,250,0.15);
+  --starwhite: #e8e4f8;
+  --muted: rgba(232,228,248,0.45);
+  --glass: rgba(255,255,255,0.04);
+  --glass-border: rgba(255,255,255,0.08);
+  --glass-hover: rgba(255,255,255,0.07);
+  --active-green: #4ade80;
+  --active-green-dim: rgba(74,222,128,0.15);
+  --danger: #f87171;
+  --danger-dim: rgba(248,113,113,0.15);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  width: 100%; height: 100%;
+  background: var(--void);
+  color: var(--starwhite);
+  font-family: 'DM Mono', monospace;
+  overflow: hidden;
+  user-select: none;
+}
+
+/* ── STARFIELD ── */
+#starfield {
+  position: fixed; inset: 0; z-index: 0;
+  pointer-events: none;
+}
+
+/* ── LAYOUT ── */
+#app {
+  position: relative; z-index: 1;
+  width: 100vw; height: 100vh;
+  display: flex;
+}
+
+/* ── PIN LOCK ── */
+#pin-screen {
+  position: fixed; inset: 0; z-index: 100;
+  background: rgba(4,4,14,0.96);
+  backdrop-filter: blur(20px);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 40px;
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+#pin-screen.hidden {
+  opacity: 0; transform: scale(1.03);
+  pointer-events: none;
+}
+.pin-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 48px; font-weight: 300; letter-spacing: 0.3em;
+  color: var(--dust);
+  text-shadow: 0 0 40px var(--violet-glow);
+}
+.pin-subtitle {
+  font-size: 11px; letter-spacing: 0.2em;
+  color: var(--muted); margin-top: -32px;
+}
+.pin-dots {
+  display: flex; gap: 14px;
+}
+.pin-dot {
+  width: 14px; height: 14px; border-radius: 50%;
+  border: 1.5px solid var(--nebula-dim);
+  background: transparent;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+.pin-dot.filled {
+  background: var(--violet);
+  border-color: var(--violet);
+  box-shadow: 0 0 12px var(--violet-glow);
+}
+.pin-dot.error {
+  background: var(--danger);
+  border-color: var(--danger);
+  box-shadow: 0 0 12px rgba(248,113,113,0.4);
+  animation: shake 0.4s ease;
+}
+@keyframes shake {
+  0%,100%{transform:translateX(0)}
+  20%{transform:translateX(-6px)}
+  40%{transform:translateX(6px)}
+  60%{transform:translateX(-4px)}
+  80%{transform:translateX(4px)}
+}
+.pin-numpad {
+  display: grid; grid-template-columns: repeat(3, 72px);
+  gap: 10px;
+}
+.pin-key {
+  width: 72px; height: 56px;
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  color: var(--starwhite);
+  font-family: 'DM Mono', monospace;
+  font-size: 20px; font-weight: 400;
+  cursor: pointer;
+  transition: background 0.12s, border-color 0.12s, box-shadow 0.12s, transform 0.08s;
+  display: flex; align-items: center; justify-content: center;
+}
+.pin-key:active, .pin-key.pressed {
+  background: var(--dust-dim);
+  border-color: var(--violet);
+  box-shadow: 0 0 14px var(--violet-glow);
+  transform: scale(0.96);
+}
+.pin-key.del { font-size: 14px; color: var(--muted); }
+.pin-key.enter {
+  background: var(--nebula-dim);
+  border-color: var(--nebula);
+  color: var(--dust);
+}
+.pin-hint { font-size: 10px; color: var(--muted); letter-spacing: 0.15em; }
+
+/* ── SIDEBAR ── */
+#sidebar {
+  width: 220px; min-width: 220px;
+  height: 100vh;
+  background: linear-gradient(180deg, var(--abyss) 0%, var(--navy) 100%);
+  border-right: 1px solid var(--glass-border);
+  display: flex; flex-direction: column;
+  padding: 28px 0 20px;
+  gap: 0;
+  backdrop-filter: blur(12px);
+  position: relative; z-index: 2;
+}
+.sidebar-logo {
+  padding: 0 24px 28px;
+  border-bottom: 1px solid var(--glass-border);
+}
+.sidebar-logo h1 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 22px; font-weight: 600; letter-spacing: 0.12em;
+  color: var(--dust);
+  text-shadow: 0 0 20px var(--violet-glow);
+  line-height: 1;
+}
+.sidebar-logo span {
+  font-size: 9px; letter-spacing: 0.25em;
+  color: var(--muted); display: block; margin-top: 5px;
+}
+.sidebar-nav {
+  flex: 1; padding: 16px 12px;
+  display: flex; flex-direction: column; gap: 4px;
+}
+.nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 11px; letter-spacing: 0.1em;
+  color: var(--muted);
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  min-height: 44px;
+}
+.nav-item:hover {
+  background: var(--glass-hover);
+  color: var(--starwhite);
+}
+.nav-item.active {
+  background: var(--dust-dim);
+  border-color: rgba(167,139,250,0.25);
+  color: var(--dust);
+}
+.nav-icon { font-size: 16px; width: 20px; text-align: center; }
+.sidebar-stats {
+  padding: 16px 18px;
+  border-top: 1px solid var(--glass-border);
+  display: flex; flex-direction: column; gap: 8px;
+}
+.stat-row {
+  display: flex; justify-content: space-between; align-items: center;
+}
+.stat-label { font-size: 9px; letter-spacing: 0.15em; color: var(--muted); }
+.stat-value {
+  font-size: 13px; font-weight: 500; color: var(--dust);
+  text-shadow: 0 0 10px var(--violet-glow);
+}
+.last-sync { font-size: 9px; color: rgba(167,139,250,0.4); letter-spacing: 0.08em; }
+
+/* ── MAIN PANEL ── */
+#main {
+  flex: 1; height: 100vh;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+#topbar {
+  height: 60px; min-height: 60px;
+  padding: 0 28px;
+  display: flex; align-items: center; justify-content: space-between;
+  border-bottom: 1px solid var(--glass-border);
+  background: rgba(7,7,26,0.6);
+  backdrop-filter: blur(8px);
+}
+.topbar-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 400; letter-spacing: 0.08em;
+  color: var(--starwhite);
+}
+.topbar-title em { font-style: italic; color: var(--dust); }
+.topbar-actions { display: flex; gap: 10px; }
+
+/* ── BUTTONS ── */
+.btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 0 16px; height: 44px;
+  border-radius: 8px;
+  font-family: 'DM Mono', monospace;
+  font-size: 10px; letter-spacing: 0.12em;
+  cursor: pointer; border: 1px solid;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+.btn-primary {
+  background: var(--nebula-dim);
+  border-color: var(--nebula);
+  color: var(--dust);
+}
+.btn-primary:hover {
+  background: rgba(107,63,160,0.5);
+  border-color: var(--violet);
+  box-shadow: 0 0 16px var(--violet-glow);
+  color: var(--starwhite);
+}
+.btn-ghost {
+  background: var(--glass);
+  border-color: var(--glass-border);
+  color: var(--muted);
+}
+.btn-ghost:hover {
+  background: var(--glass-hover);
+  border-color: rgba(255,255,255,0.14);
+  color: var(--starwhite);
+}
+.btn-danger {
+  background: var(--danger-dim);
+  border-color: rgba(248,113,113,0.3);
+  color: var(--danger);
+}
+.btn-danger:hover {
+  background: rgba(248,113,113,0.25);
+  box-shadow: 0 0 12px rgba(248,113,113,0.2);
+}
+.btn:active { transform: scale(0.97); }
+
+/* ── CONTENT AREA ── */
+#content {
+  flex: 1; overflow-y: auto;
+  padding: 24px 28px;
+  display: flex; flex-direction: column; gap: 20px;
+}
+#content::-webkit-scrollbar { width: 4px; }
+#content::-webkit-scrollbar-track { background: transparent; }
+#content::-webkit-scrollbar-thumb { background: var(--nebula-dim); border-radius: 2px; }
+
+/* ── EXTRACTOR ── */
+.panel {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.panel-header {
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--glass-border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.panel-title {
+  font-size: 10px; letter-spacing: 0.2em; color: var(--dust);
+  text-transform: uppercase;
+}
+.panel-body { padding: 18px 20px; }
+
+#paste-area {
+  width: 100%;
+  min-height: 100px; max-height: 160px;
+  background: rgba(4,4,14,0.6);
+  border: 1px solid var(--glass-border);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-family: 'DM Mono', monospace;
+  font-size: 11px; line-height: 1.6;
+  color: var(--starwhite);
+  resize: vertical;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+#paste-area:focus {
+  border-color: var(--nebula);
+  box-shadow: 0 0 0 2px rgba(107,63,160,0.2);
+}
+#paste-area::placeholder { color: rgba(232,228,248,0.2); }
+
+.extractor-footer {
+  margin-top: 12px;
+  display: flex; align-items: center; gap: 12px;
+}
+.extract-badge {
+  padding: 4px 12px;
+  border-radius: 20px;
+  font-size: 10px; letter-spacing: 0.1em;
+  display: none;
+}
+.badge-new {
+  background: var(--active-green-dim);
+  border: 1px solid rgba(74,222,128,0.3);
+  color: var(--active-green);
+}
+.badge-dup {
+  background: var(--danger-dim);
+  border: 1px solid rgba(248,113,113,0.3);
+  color: var(--danger);
+}
+
+/* ── PREVIEW TABLE ── */
+#preview-panel { display: none; }
+.preview-list {
+  display: flex; flex-direction: column; gap: 6px;
+  max-height: 180px; overflow-y: auto;
+}
+.preview-list::-webkit-scrollbar { width: 3px; }
+.preview-list::-webkit-scrollbar-thumb { background: var(--nebula-dim); }
+.preview-row {
+  display: flex; align-items: center; gap: 10px;
+  padding: 8px 12px;
+  background: rgba(74,222,128,0.05);
+  border: 1px solid rgba(74,222,128,0.15);
+  border-radius: 6px;
+  font-size: 10px; color: var(--muted);
+  animation: fadeSlide 0.2s ease both;
+}
+@keyframes fadeSlide {
+  from { opacity:0; transform:translateY(-4px); }
+  to { opacity:1; transform:translateY(0); }
+}
+.preview-row .game-id {
+  color: var(--active-green);
+  font-weight: 500; min-width: 80px;
+}
+.preview-row .code-snip {
+  color: var(--dust); flex:1;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.preview-commit-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--glass-border);
+  margin-top: 12px;
+}
+.commit-info { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
+.commit-info strong { color: var(--active-green); }
+
+/* ── LINK GRID ── */
+#links-panel .panel-header { justify-content: space-between; }
+.link-count-badge {
+  font-size: 10px; padding: 3px 10px;
+  background: var(--dust-dim);
+  border: 1px solid rgba(167,139,250,0.2);
+  border-radius: 20px; color: var(--dust);
+}
+#link-grid {
+  padding: 16px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 10px;
+  max-height: calc(100vh - 340px);
+  overflow-y: auto;
+}
+#link-grid::-webkit-scrollbar { width: 3px; }
+#link-grid::-webkit-scrollbar-thumb { background: var(--nebula-dim); }
+
+.link-card {
+  background: linear-gradient(135deg, rgba(17,20,53,0.8) 0%, rgba(7,7,26,0.9) 100%);
+  border: 1px solid var(--glass-border);
+  border-radius: 10px;
+  padding: 14px 14px 12px;
+  display: flex; flex-direction: column; gap: 8px;
+  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
+  animation: cardIn 0.3s ease both;
+  position: relative;
+  overflow: hidden;
+}
+@keyframes cardIn {
+  from { opacity:0; transform:scale(0.97) translateY(4px); }
+  to { opacity:1; transform:scale(1) translateY(0); }
+}
+.link-card::before {
+  content:'';
+  position:absolute; top:0; left:0; right:0; height:1px;
+  background: linear-gradient(90deg, transparent, var(--nebula-dim), transparent);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+.link-card:hover {
+  border-color: rgba(139,92,246,0.3);
+  box-shadow: 0 4px 20px rgba(107,63,160,0.15);
+  transform: translateY(-1px);
+}
+.link-card:hover::before { opacity:1; }
+.link-card.removing {
+  animation: cardOut 0.25s ease forwards;
+}
+@keyframes cardOut {
+  to { opacity:0; transform:scale(0.94); max-height:0; margin:0; padding:0; border-width:0; }
+}
+
+.card-top {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-url {
+  font-size: 10px; color: var(--muted);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  flex: 1; max-width: calc(100% - 90px);
+}
+.card-status {
+  padding: 3px 8px; border-radius: 20px;
+  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+}
+.status-active {
+  background: var(--active-green-dim);
+  border: 1px solid rgba(74,222,128,0.3);
+  color: var(--active-green);
+}
+.status-unknown {
+  background: rgba(167,139,250,0.1);
+  border: 1px solid rgba(167,139,250,0.2);
+  color: rgba(167,139,250,0.7);
+}
+.card-middle {
+  display: flex; align-items: center; gap: 8px;
+}
+.chip {
+  padding: 3px 10px; border-radius: 4px;
+  font-size: 9px; letter-spacing: 0.08em;
+}
+.chip-game {
+  background: rgba(107,63,160,0.2);
+  border: 1px solid rgba(107,63,160,0.3);
+  color: var(--dust);
+}
+.chip-code {
+  background: rgba(201,123,138,0.1);
+  border: 1px solid rgba(201,123,138,0.2);
+  color: var(--rose);
+  flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  max-width: 180px;
+}
+.card-bottom {
+  display: flex; align-items: center; justify-content: space-between;
+}
+.card-date { font-size: 9px; color: rgba(232,228,248,0.25); }
+.btn-remove {
+  padding: 0 12px; height: 32px; min-width: 44px;
+  border-radius: 6px;
+  background: rgba(248,113,113,0.08);
+  border: 1px solid rgba(248,113,113,0.2);
+  color: rgba(248,113,113,0.6);
+  font-family: 'DM Mono', monospace;
+  font-size: 9px; letter-spacing: 0.1em;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-remove:hover {
+  background: rgba(248,113,113,0.18);
+  border-color: rgba(248,113,113,0.5);
+  color: var(--danger);
+  box-shadow: 0 0 10px rgba(248,113,113,0.15);
+}
+.btn-remove:active { transform: scale(0.95); }
+
+/* ── EMPTY STATE ── */
+#empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 60px 20px;
+  gap: 12px; text-align: center;
+}
+.empty-glyph {
+  font-size: 48px; opacity: 0.3;
+  filter: drop-shadow(0 0 20px var(--violet));
+}
+.empty-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 300;
+  color: var(--muted); letter-spacing: 0.05em;
+}
+.empty-sub { font-size: 10px; color: rgba(232,228,248,0.25); letter-spacing: 0.1em; }
+
+/* ── TOAST ── */
+#toast-container {
+  position: fixed; bottom: 28px; right: 28px;
+  z-index: 200; display: flex; flex-direction: column; gap: 10px;
+  pointer-events: none;
+}
+.toast {
+  padding: 12px 18px;
+  border-radius: 10px; border: 1px solid;
+  font-size: 11px; letter-spacing: 0.05em;
+  backdrop-filter: blur(10px);
+  animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+  pointer-events: auto;
+}
+@keyframes toastIn { from {opacity:0;transform:translateY(10px)} to {opacity:1;transform:translateY(0)} }
+@keyframes toastOut { to {opacity:0;transform:translateY(6px)} }
+.toast-success {
+  background: rgba(74,222,128,0.12);
+  border-color: rgba(74,222,128,0.3);
+  color: var(--active-green);
+}
+.toast-error {
+  background: rgba(248,113,113,0.12);
+  border-color: rgba(248,113,113,0.3);
+  color: var(--danger);
+}
+.toast-info {
+  background: rgba(167,139,250,0.12);
+  border-color: rgba(167,139,250,0.3);
+  color: var(--dust);
+}
+
+/* ── MODAL ── */
+#modal-overlay {
+  position: fixed; inset: 0; z-index: 150;
+  background: rgba(4,4,14,0.8);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+#modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--deep);
+  border: 1px solid rgba(107,63,160,0.3);
+  border-radius: 14px; padding: 28px;
+  width: 360px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(107,63,160,0.15);
+  display: flex; flex-direction: column; gap: 16px;
+  transform: scale(0.96);
+  transition: transform 0.2s;
+}
+#modal-overlay.open .modal { transform: scale(1); }
+.modal-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 20px; font-weight: 400; color: var(--starwhite);
+}
+.modal-body { font-size: 11px; color: var(--muted); line-height: 1.7; }
+.modal-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 4px; }
+
+/* ── SCROLLBAR GLOBAL ── */
+* { scrollbar-width: thin; scrollbar-color: var(--nebula-dim) transparent; }
+</style>
+</head>
+<body>
+
+<canvas id="starfield"></canvas>
+
+<!-- PIN SCREEN -->
+<div id="pin-screen">
+  <div class="pin-logo">UNIVERSE VAULT</div>
+  <div class="pin-subtitle">ENTER ACCESS CODE</div>
+  <div class="pin-dots" id="pin-dots">
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+    <div class="pin-dot"></div>
+  </div>
+  <div class="pin-numpad" id="pin-numpad">
+    <button class="pin-key" data-digit="1">1</button>
+    <button class="pin-key" data-digit="2">2</button>
+    <button class="pin-key" data-digit="3">3</button>
+    <button class="pin-key" data-digit="4">4</button>
+    <button class="pin-key" data-digit="5">5</button>
+    <button class="pin-key" data-digit="6">6</button>
+    <button class="pin-key" data-digit="7">7</button>
+    <button class="pin-key" data-digit="8">8</button>
+    <button class="pin-key" data-digit="9">9</button>
+    <button class="pin-key del" data-action="del">⌫</button>
+    <button class="pin-key" data-digit="0">0</button>
+    <button class="pin-key enter" data-action="enter">↵</button>
+  </div>
+  <div class="pin-hint">DEFAULT: 0000</div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <!-- SIDEBAR -->
+  <aside id="sidebar">
+    <div class="sidebar-logo">
+      <h1>UNIVERSE<br>VAULT</h1>
+      <span>PRIVATE SERVER MATRIX</span>
+    </div>
+    <nav class="sidebar-nav">
+      <div class="nav-item active" data-view="vault">
+        <span class="nav-icon">◈</span> VAULT
+      </div>
+      <div class="nav-item" data-view="extract">
+        <span class="nav-icon">⊕</span> EXTRACTOR
+      </div>
+      <div class="nav-item" id="nav-export">
+        <span class="nav-icon">↗</span> EXPORT
+      </div>
+      <div class="nav-item" id="nav-clear" style="color:rgba(248,113,113,0.5)">
+        <span class="nav-icon">✕</span> PURGE ALL
+      </div>
+    </nav>
+    <div class="sidebar-stats">
+      <div class="stat-row">
+        <span class="stat-label">LINKS STORED</span>
+        <span class="stat-value" id="stat-count">0</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">STATUS</span>
+        <span class="stat-value" style="color:var(--active-green);font-size:11px">● ONLINE</span>
+      </div>
+      <div class="last-sync" id="last-sync">SYNCED JUST NOW</div>
+    </div>
+  </aside>
+
+  <!-- MAIN PANEL -->
+  <main id="main">
+    <div id="topbar">
+      <div class="topbar-title" id="topbar-title">
+        <em>Vault</em> — All Servers
+      </div>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" id="btn-refresh">↻ REFRESH</button>
+        <button class="btn btn-primary" id="btn-open-extractor">⊕ EXTRACT LINKS</button>
+      </div>
+    </div>
+
+    <div id="content">
+      <!-- EXTRACTOR PANEL (shown/hidden) -->
+      <div class="panel" id="extractor-panel" style="display:none">
+        <div class="panel-header">
+          <span class="panel-title">⊕ PASTE & EXTRACT ENGINE</span>
+          <button class="btn btn-ghost" style="height:32px;padding:0 12px;font-size:9px" id="btn-close-extractor">✕ CLOSE</button>
+        </div>
+        <div class="panel-body">
+          <textarea id="paste-area" placeholder="Paste raw clipboard content here — Discord logs, browser dumps, squashed links — the engine handles the rest..."></textarea>
+          <div class="extractor-footer">
+            <button class="btn btn-primary" id="btn-extract">EXTRACT</button>
+            <button class="btn btn-ghost" id="btn-clear-paste" style="height:44px;padding:0 14px;font-size:10px">CLEAR</button>
+            <span class="extract-badge badge-new" id="badge-new"></span>
+            <span class="extract-badge badge-dup" id="badge-dup"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREVIEW PANEL -->
+      <div class="panel" id="preview-panel">
+        <div class="panel-header">
+          <span class="panel-title">◎ EXTRACTION PREVIEW</span>
+        </div>
+        <div class="panel-body">
+          <div class="preview-list" id="preview-list"></div>
+          <div class="preview-commit-bar">
+            <span class="commit-info" id="commit-info"></span>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-ghost" id="btn-cancel-commit" style="height:40px;padding:0 14px;font-size:10px">CANCEL</button>
+              <button class="btn btn-primary" id="btn-commit">COMMIT TO VAULT</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- LINK GRID PANEL -->
+      <div class="panel" id="links-panel">
+        <div class="panel-header">
+          <span class="panel-title">◈ PRIVATE SERVER LINKS</span>
+          <span class="link-count-badge" id="link-count-badge">0 ENTRIES</span>
+        </div>
+        <div id="link-grid">
+          <div id="empty-state">
+            <div class="empty-glyph">◈</div>
+            <div class="empty-title">The vault is empty</div>
+            <div class="empty-sub">PASTE LINKS ABOVE TO BEGIN</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div id="modal-overlay">
+  <div class="modal">
+    <div class="modal-title" id="modal-title">Confirm</div>
+    <div class="modal-body" id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" id="modal-cancel" style="height:40px">CANCEL</button>
+      <button class="btn btn-danger" id="modal-confirm" style="height:40px">CONFIRM</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div id="toast-container"></div>
+
+<script>
+// ─────────────────────────────────────────────
+//  STARFIELD
+// ─────────────────────────────────────────────
+(function() {
+  const canvas = document.getElementById('starfield');
+  const ctx = canvas.getContext('2d');
+  let W, H, stars = [], meteors = [];
+
+  function resize() {
+    W = canvas.width = window.innerWidth;
+    H = canvas.height = window.innerHeight;
+  }
+
+  function mkStar() {
+    return {
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.2 + 0.2,
+      a: Math.random(),
+      da: (Math.random() - 0.5) * 0.004,
+      vx: (Math.random() - 0.5) * 0.06,
+      vy: Math.random() * 0.04 + 0.01,
+      color: Math.random() > 0.85 ? '#c97b8a' : Math.random() > 0.7 ? '#a78bfa' : '#e8e4f8'
+    };
+  }
+
+  function mkMeteor() {
+    return {
+      x: Math.random() * W * 1.5 - W * 0.25,
+      y: -20,
+      vx: 3 + Math.random() * 3,
+      vy: 2 + Math.random() * 2,
+      len: 80 + Math.random() * 100,
+      a: 1, life: 1
+    };
+  }
+
+  resize();
+  for (let i = 0; i < 220; i++) stars.push(mkStar());
+  setInterval(() => { if (meteors.length < 3 && Math.random() > 0.7) meteors.push(mkMeteor()); }, 3000);
+
+  function draw() {
+    ctx.fillStyle = 'rgba(4,4,14,0.25)';
+    ctx.fillRect(0, 0, W, H);
+
+    stars.forEach(s => {
+      s.x += s.vx; s.y += s.vy;
+      s.a += s.da;
+      if (s.a < 0.1 || s.a > 1) s.da *= -1;
+      if (s.x < 0) s.x = W; if (s.x > W) s.x = 0;
+      if (s.y > H) { s.y = 0; s.x = Math.random() * W; }
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+      ctx.fillStyle = s.color;
+      ctx.globalAlpha = s.a * 0.8;
+      ctx.fill();
+    });
+
+    meteors = meteors.filter(m => m.a > 0);
+    meteors.forEach(m => {
+      m.x += m.vx; m.y += m.vy; m.life -= 0.012; m.a = m.life;
+      const grad = ctx.createLinearGradient(m.x, m.y, m.x - m.vx * 20, m.y - m.vy * 20);
+      grad.addColorStop(0, `rgba(167,139,250,${m.a})`);
+      grad.addColorStop(1, 'rgba(167,139,250,0)');
+      ctx.beginPath();
+      ctx.moveTo(m.x, m.y);
+      ctx.lineTo(m.x - m.vx * 20, m.y - m.vy * 20);
+      ctx.strokeStyle = grad;
+      ctx.lineWidth = 1.5;
+      ctx.globalAlpha = m.a;
+      ctx.stroke();
+    });
+
+    ctx.globalAlpha = 1;
+    requestAnimationFrame(draw);
+  }
+  draw();
+  window.addEventListener('resize', resize);
+})();
+
+// ─────────────────────────────────────────────
+//  STATE
+// ─────────────────────────────────────────────
+const STORAGE_KEY = 'universe_vault_links';
+const PIN_KEY = 'uv_pin';
+const SESSION_KEY = 'uv_authed';
+const DEFAULT_PIN = '0000';
+const AUTH_TOKEN = 'fool-secret-token-2025';
+
+let state = {
+  links: [],
+  pendingLinks: []
+};
+
+function saveLinks() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state.links));
+  updateStats();
+}
+
+function loadLinks() {
+  try {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (stored) state.links = JSON.parse(stored);
+  } catch(e) { state.links = []; }
+}
+
+function updateStats() {
+  document.getElementById('stat-count').textContent = state.links.length;
+  document.getElementById('link-count-badge').textContent = state.links.length + ' ENTRIES';
+  const now = new Date();
+  document.getElementById('last-sync').textContent =
+    'SYNCED ' + now.toLocaleTimeString('en-US', {hour:'2-digit',minute:'2-digit'});
+}
+
+// ─────────────────────────────────────────────
+//  PIN SYSTEM
+// ─────────────────────────────────────────────
+let pinEntry = '';
+const PIN_LEN = 4;
+
+function getPin() { return localStorage.getItem(PIN_KEY) || DEFAULT_PIN; }
+
+function renderPinDots() {
+  const dots = document.querySelectorAll('.pin-dot');
+  dots.forEach((d, i) => {
+    d.classList.toggle('filled', i < pinEntry.length);
+    d.classList.remove('error');
+  });
+}
+
+function pinError() {
+  document.querySelectorAll('.pin-dot').forEach(d => {
+    d.classList.add('error'); d.classList.remove('filled');
+  });
+  setTimeout(() => {
+    pinEntry = '';
+    renderPinDots();
+  }, 500);
+}
+
+function pinSuccess() {
+  sessionStorage.setItem(SESSION_KEY, '1');
+  const ps = document.getElementById('pin-screen');
+  ps.classList.add('hidden');
+  setTimeout(() => ps.style.display = 'none', 700);
+}
+
+function pinSubmit() {
+  if (pinEntry === getPin()) pinSuccess();
+  else pinError();
+}
+
+document.querySelectorAll('.pin-key').forEach(btn => {
+  btn.addEventListener('click', () => {
+    btn.classList.add('pressed');
+    setTimeout(() => btn.classList.remove('pressed'), 120);
+    const digit = btn.dataset.digit;
+    const action = btn.dataset.action;
+    if (digit !== undefined && pinEntry.length < PIN_LEN) {
+      pinEntry += digit;
+      renderPinDots();
+      if (pinEntry.length === PIN_LEN) setTimeout(pinSubmit, 150);
+    } else if (action === 'del') {
+      pinEntry = pinEntry.slice(0, -1);
+      renderPinDots();
+    } else if (action === 'enter') {
+      pinSubmit();
+    }
+  });
+});
+
+// Check session
+if (sessionStorage.getItem(SESSION_KEY)) {
+  const ps = document.getElementById('pin-screen');
+  ps.style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+//  EXTRACTION ENGINE
+// ─────────────────────────────────────────────
+const EXTRACT_REGEX = /https?:\/\/(?:www\.)?roblox\.com\/games\/(\d+)(?:\/[^/?]+)?\?privateServerLinkCode=([a-zA-Z0-9_-]+?)(?=https?:\/\/|\s|$)/g;
+
+function extractLinks(raw) {
+  const results = [];
+  let match;
+  const re = new RegExp(EXTRACT_REGEX.source, 'g');
+  while ((match = re.exec(raw)) !== null) {
+    results.push({
+      id: match[2],
+      gameId: match[1],
+      linkCode: match[2],
+      fullUrl: match[0],
+      status: 'active',
+      addedAt: new Date().toISOString()
+    });
+  }
+  // Deduplicate within results
+  const seen = new Set();
+  return results.filter(r => {
+    if (seen.has(r.linkCode)) return false;
+    seen.add(r.linkCode);
+    return true;
+  });
+}
+
+function deduplicateAgainstStore(candidates) {
+  const existing = new Set(state.links.map(l => l.linkCode));
+  return {
+    newLinks: candidates.filter(c => !existing.has(c.linkCode)),
+    dupCount: candidates.filter(c => existing.has(c.linkCode)).length
+  };
+}
+
+// ─────────────────────────────────────────────
+//  UI: EXTRACTOR
+// ─────────────────────────────────────────────
+const extractorPanel = document.getElementById('extractor-panel');
+const previewPanel = document.getElementById('preview-panel');
+const pasteArea = document.getElementById('paste-area');
+const badgeNew = document.getElementById('badge-new');
+const badgeDup = document.getElementById('badge-dup');
+
+document.getElementById('btn-open-extractor').addEventListener('click', () => {
+  extractorPanel.style.display = 'block';
+  pasteArea.focus();
+});
+document.getElementById('btn-close-extractor').addEventListener('click', () => {
+  extractorPanel.style.display = 'none';
+  previewPanel.style.display = 'none';
+  pasteArea.value = '';
+  badgeNew.style.display = 'none';
+  badgeDup.style.display = 'none';
+});
+document.getElementById('btn-clear-paste').addEventListener('click', () => {
+  pasteArea.value = '';
+  previewPanel.style.display = 'none';
+  badgeNew.style.display = 'none';
+  badgeDup.style.display = 'none';
+});
+
+document.getElementById('btn-extract').addEventListener('click', () => {
+  const raw = pasteArea.value.trim();
+  if (!raw) { showToast('Paste some content first', 'info'); return; }
+
+  const candidates = extractLinks(raw);
+  if (candidates.length === 0) {
+    showToast('No Roblox private server links found', 'error');
+    return;
+  }
+
+  const { newLinks, dupCount } = deduplicateAgainstStore(candidates);
+  state.pendingLinks = newLinks;
+
+  badgeNew.textContent = `+${newLinks.length} NEW`;
+  badgeNew.style.display = 'inline-flex';
+  badgeDup.textContent = `${dupCount} DUP`;
+  badgeDup.style.display = dupCount > 0 ? 'inline-flex' : 'none';
+
+  const list = document.getElementById('preview-list');
+  list.innerHTML = '';
+  newLinks.forEach(l => {
+    const row = document.createElement('div');
+    row.className = 'preview-row';
+    row.innerHTML = `
+      <span class="game-id">${l.gameId}</span>
+      <span class="code-snip">${l.linkCode}</span>
+    `;
+    list.appendChild(row);
+  });
+
+  document.getElementById('commit-info').innerHTML =
+    `<strong>${newLinks.length}</strong> new link${newLinks.length !== 1 ? 's' : ''} ready to commit${dupCount > 0 ? ` · ${dupCount} duplicate${dupCount !== 1 ? 's' : ''} skipped` : ''}`;
+
+  previewPanel.style.display = 'block';
+  previewPanel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+
+document.getElementById('btn-cancel-commit').addEventListener('click', () => {
+  previewPanel.style.display = 'none';
+  state.pendingLinks = [];
+});
+
+document.getElementById('btn-commit').addEventListener('click', () => {
+  if (state.pendingLinks.length === 0) return;
+  state.links.unshift(...state.pendingLinks);
+  saveLinks();
+  renderGrid();
+  showToast(`${state.pendingLinks.length} link${state.pendingLinks.length !== 1 ? 's' : ''} committed to vault`, 'success');
+  state.pendingLinks = [];
+  previewPanel.style.display = 'none';
+  extractorPanel.style.display = 'none';
+  pasteArea.value = '';
+  badgeNew.style.display = 'none';
+  badgeDup.style.display = 'none';
+});
+
+// ─────────────────────────────────────────────
+//  UI: LINK GRID
+// ─────────────────────────────────────────────
+function renderGrid() {
+  const grid = document.getElementById('link-grid');
+  grid.innerHTML = '';
+  updateStats();
+
+  if (state.links.length === 0) {
+    grid.innerHTML = `
+      <div id="empty-state">
+        <div class="empty-glyph">◈</div>
+        <div class="empty-title">The vault is empty</div>
+        <div class="empty-sub">PASTE LINKS ABOVE TO BEGIN</div>
+      </div>`;
+    return;
+  }
+
+  state.links.forEach((link, idx) => {
+    const card = document.createElement('div');
+    card.className = 'link-card';
+    card.dataset.code = link.linkCode;
+    const date = new Date(link.addedAt).toLocaleDateString('en-US', {month:'short',day:'numeric'});
+    const urlShort = link.fullUrl.length > 52 ? link.fullUrl.slice(0, 52) + '…' : link.fullUrl;
+    const codeShort = link.linkCode.length > 22 ? link.linkCode.slice(0, 22) + '…' : link.linkCode;
+    const statusClass = link.status === 'active' ? 'status-active' : 'status-unknown';
+    const statusLabel = link.status === 'active' ? 'ACTIVE' : 'UNKNOWN';
+    card.innerHTML = `
+      <div class="card-top">
+        <span class="card-url" title="${link.fullUrl}">${urlShort}</span>
+        <span class="card-status ${statusClass}">${statusLabel}</span>
+      </div>
+      <div class="card-middle">
+        <span class="chip chip-game">ID ${link.gameId}</span>
+        <span class="chip chip-code" title="${link.linkCode}">${codeShort}</span>
+      </div>
+      <div class="card-bottom">
+        <span class="card-date">${date}</span>
+        <button class="btn-remove" data-code="${link.linkCode}">REMOVE</button>
+      </div>
+    `;
+    card.querySelector('.btn-remove').addEventListener('click', (e) => {
+      e.stopPropagation();
+      confirmRemove(link.linkCode);
+    });
+    card.style.animationDelay = (idx * 0.03) + 's';
+    grid.appendChild(card);
+  });
+}
+
+function confirmRemove(linkCode) {
+  showModal(
+    'Remove Link',
+    'This link will be permanently removed from the vault. This action cannot be undone.',
+    () => removeLink(linkCode)
+  );
+}
+
+function removeLink(linkCode) {
+  const card = document.querySelector(`.link-card[data-code="${linkCode}"]`);
+  if (card) {
+    card.classList.add('removing');
+    setTimeout(() => {
+      state.links = state.links.filter(l => l.linkCode !== linkCode);
+      saveLinks();
+      renderGrid();
+    }, 250);
+  }
+  showToast('Link removed from vault', 'info');
+}
+
+// ─────────────────────────────────────────────
+//  SIDEBAR NAV
+// ─────────────────────────────────────────────
+document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+    item.classList.add('active');
+    const view = item.dataset.view;
+    const title = document.getElementById('topbar-title');
+    if (view === 'vault') {
+      title.innerHTML = '<em>Vault</em> — All Servers';
+      extractorPanel.style.display = 'none';
+    } else if (view === 'extract') {
+      title.innerHTML = '<em>Extractor</em> — Paste Engine';
+      extractorPanel.style.display = 'block';
+      pasteArea.focus();
+    }
+  });
+});
+
+document.getElementById('nav-export').addEventListener('click', () => {
+  if (state.links.length === 0) { showToast('No links to export', 'info'); return; }
+  const lines = state.links.map(l => l.fullUrl).join('\n');
+  const blob = new Blob([lines], { type: 'text/plain' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'universe_vault_links.txt';
+  a.click();
+  showToast(`Exported ${state.links.length} links`, 'success');
+});
+
+document.getElementById('nav-clear').addEventListener('click', () => {
+  if (state.links.length === 0) { showToast('Vault is already empty', 'info'); return; }
+  showModal(
+    'Purge All Links',
+    `You are about to permanently delete all ${state.links.length} links from the vault. This cannot be undone.`,
+    () => {
+      state.links = [];
+      saveLinks();
+      renderGrid();
+      showToast('Vault purged', 'info');
+    }
+  );
+});
+
+document.getElementById('btn-refresh').addEventListener('click', () => {
+  renderGrid();
+  showToast('Vault refreshed', 'info');
+});
+
+// ─────────────────────────────────────────────
+//  MODAL
+// ─────────────────────────────────────────────
+let modalCallback = null;
+
+function showModal(title, body, onConfirm) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('modal-body').textContent = body;
+  modalCallback = onConfirm;
+  document.getElementById('modal-overlay').classList.add('open');
+}
+
+document.getElementById('modal-cancel').addEventListener('click', () => {
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalCallback = null;
+});
+document.getElementById('modal-confirm').addEventListener('click', () => {
+  if (modalCallback) modalCallback();
+  document.getElementById('modal-overlay').classList.remove('open');
+  modalCallback = null;
+});
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target === e.currentTarget) {
+    document.getElementById('modal-overlay').classList.remove('open');
+    modalCallback = null;
+  }
+});
+
+// ─────────────────────────────────────────────
+//  TOAST
+// ─────────────────────────────────────────────
+function showToast(msg, type = 'info') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast toast-${type}`;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => t.remove(), 3200);
+}
+
+// ─────────────────────────────────────────────
+//  DEMO SEED (optional — comment out for clean start)
+// ─────────────────────────────────────────────
+function seedDemo() {
+  if (state.links.length === 0) {
+    const demos = [
+      { id: 'aXkQ9_mNb', gameId: '6624607710', linkCode: 'aXkQ9_mNb' },
+      { id: 'zPr7vLwJc', gameId: '6624607710', linkCode: 'zPr7vLwJc' },
+      { id: 'mKt3nHqWs', gameId: '5178419741', linkCode: 'mKt3nHqWs' },
+      { id: 'dRj8xFpYe', gameId: '5178419741', linkCode: 'dRj8xFpYe' },
+      { id: 'vBu2cGiOl', gameId: '6624607710', linkCode: 'vBu2cGiOl' },
+      { id: 'qNy6kSmDh', gameId: '7891234567', linkCode: 'qNy6kSmDh' },
+    ];
+    state.links = demos.map((d, i) => ({
+      id: d.id,
+      gameId: d.gameId,
+      linkCode: d.linkCode,
+      fullUrl: `https://www.roblox.com/games/${d.gameId}/Sailor-Piece?privateServerLinkCode=${d.linkCode}`,
+      status: i % 3 === 2 ? 'unknown' : 'active',
+      addedAt: new Date(Date.now() - i * 86400000 * 2).toISOString()
+    }));
+    saveLinks();
+  }
+}
+
+// ─────────────────────────────────────────────
+//  INIT
+// ─────────────────────────────────────────────
+loadLinks();
+seedDemo();
+renderGrid();
+</script>
+</body>
+</html>
