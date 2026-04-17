@@ -375,7 +375,7 @@ html, body {
 .commit-info { font-size: 10px; color: var(--muted); letter-spacing: 0.05em; }
 .commit-info strong { color: var(--active-green); }
 
-/* ── LINK GRID ── */
+/* ── LINK LIST ── */
 #links-panel .panel-header { justify-content: space-between; }
 .link-count-badge {
   font-size: 10px; padding: 3px 10px;
@@ -383,63 +383,51 @@ html, body {
   border: 1px solid rgba(167,139,250,0.2);
   border-radius: 20px; color: var(--dust);
 }
-#link-grid {
-  padding: 16px;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 10px;
-  max-height: calc(100vh - 340px);
+  padding: 0;
+  display: flex; flex-direction: column;
+  max-height: calc(100vh - 300px);
   overflow-y: auto;
 }
-#link-grid::-webkit-scrollbar { width: 3px; }
-#link-grid::-webkit-scrollbar-thumb { background: var(--nebula-dim); }
+#link-grid::-webkit-scrollbar { width: 4px; }
+#link-grid::-webkit-scrollbar-thumb { background: var(--nebula-dim); border-radius: 2px; }
 
-.link-card {
-  background: linear-gradient(135deg, rgba(17,20,53,0.8) 0%, rgba(7,7,26,0.9) 100%);
-  border: 1px solid var(--glass-border);
-  border-radius: 10px;
-  padding: 14px 14px 12px;
-  display: flex; flex-direction: column; gap: 8px;
-  transition: border-color 0.2s, box-shadow 0.2s, transform 0.15s;
-  animation: cardIn 0.3s ease both;
-  position: relative;
-  overflow: hidden;
+.link-row {
+  display: grid;
+  grid-template-columns: 90px 1fr 160px 80px 44px;
+  align-items: center;
+  gap: 0;
+  padding: 0 20px;
+  height: 44px; min-height: 44px;
+  border-bottom: 1px solid var(--glass-border);
+  transition: background 0.12s;
+  animation: rowIn 0.2s ease both;
 }
-@keyframes cardIn {
-  from { opacity:0; transform:scale(0.97) translateY(4px); }
-  to { opacity:1; transform:scale(1) translateY(0); }
+@keyframes rowIn {
+  from { opacity:0; transform:translateX(-4px); }
+  to   { opacity:1; transform:translateX(0); }
 }
-.link-card::before {
-  content:'';
-  position:absolute; top:0; left:0; right:0; height:1px;
-  background: linear-gradient(90deg, transparent, var(--nebula-dim), transparent);
-  opacity: 0;
-  transition: opacity 0.2s;
-}
-.link-card:hover {
-  border-color: rgba(139,92,246,0.3);
-  box-shadow: 0 4px 20px rgba(107,63,160,0.15);
-  transform: translateY(-1px);
-}
-.link-card:hover::before { opacity:1; }
-.link-card.removing {
-  animation: cardOut 0.25s ease forwards;
-}
-@keyframes cardOut {
-  to { opacity:0; transform:scale(0.94); max-height:0; margin:0; padding:0; border-width:0; }
-}
+.link-row:hover { background: var(--glass-hover); }
+.link-row.removing { opacity:0; transition: opacity 0.2s; }
 
-.card-top {
-  display: flex; align-items: center; justify-content: space-between;
+.row-gameid {
+  font-size: 10px; color: var(--dust);
+  font-weight: 500; letter-spacing: 0.05em;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-.card-url {
-  font-size: 10px; color: var(--muted);
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  flex: 1; max-width: calc(100% - 90px);
+.row-url {
+  font-size: 9px; color: var(--muted);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding: 0 12px;
 }
-.card-status {
+.row-code {
+  font-size: 9px; color: var(--rose);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  padding-right: 12px;
+}
+.row-status {
   padding: 3px 8px; border-radius: 20px;
-  font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase;
+  font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase;
+  text-align: center;
 }
 .status-active {
   background: var(--active-green-dim);
@@ -451,31 +439,8 @@ html, body {
   border: 1px solid rgba(167,139,250,0.2);
   color: rgba(167,139,250,0.7);
 }
-.card-middle {
-  display: flex; align-items: center; gap: 8px;
-}
-.chip {
-  padding: 3px 10px; border-radius: 4px;
-  font-size: 9px; letter-spacing: 0.08em;
-}
-.chip-game {
-  background: rgba(107,63,160,0.2);
-  border: 1px solid rgba(107,63,160,0.3);
-  color: var(--dust);
-}
-.chip-code {
-  background: rgba(201,123,138,0.1);
-  border: 1px solid rgba(201,123,138,0.2);
-  color: var(--rose);
-  flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
-  max-width: 180px;
-}
-.card-bottom {
-  display: flex; align-items: center; justify-content: space-between;
-}
-.card-date { font-size: 9px; color: rgba(232,228,248,0.25); }
 .btn-remove {
-  padding: 0 12px; height: 32px; min-width: 44px;
+  width: 44px; height: 32px;
   border-radius: 6px;
   background: rgba(248,113,113,0.08);
   border: 1px solid rgba(248,113,113,0.2);
@@ -484,6 +449,7 @@ html, body {
   font-size: 9px; letter-spacing: 0.1em;
   cursor: pointer;
   transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center;
 }
 .btn-remove:hover {
   background: rgba(248,113,113,0.18);
@@ -492,6 +458,20 @@ html, body {
   box-shadow: 0 0 10px rgba(248,113,113,0.15);
 }
 .btn-remove:active { transform: scale(0.95); }
+
+/* list header */
+.list-header {
+  display: grid;
+  grid-template-columns: 90px 1fr 160px 80px 44px;
+  align-items: center;
+  padding: 0 20px; height: 32px;
+  border-bottom: 1px solid rgba(167,139,250,0.15);
+  background: rgba(17,20,53,0.6);
+}
+.list-header span {
+  font-size: 8px; letter-spacing: 0.18em; color: rgba(167,139,250,0.5);
+  text-transform: uppercase;
+}
 
 /* ── EMPTY STATE ── */
 #empty-state {
@@ -803,73 +783,41 @@ html, body {
 })();
 
 // ─────────────────────────────────────────────
-//  CONFIG — API
+//  CONFIG
 // ─────────────────────────────────────────────
 const API_BASE = 'https://universe-vault.vercel.app/api/links';
-const API_TOKEN = 'fool-secret-token-2025';
+const API_HEADERS = { 'Content-Type': 'application/json', 'x-fool-auth': 'fool-secret-token-2025' };
 const PIN_KEY = 'uv_pin';
 const SESSION_KEY = 'uv_authed';
 const DEFAULT_PIN = '0000';
 
-const API_HEADERS = {
-  'Content-Type': 'application/json',
-  'x-fool-auth': API_TOKEN
-};
-
-let state = {
-  links: [],
-  pendingLinks: []
-};
+let state = { links: [], pendingLinks: [] };
 
 // ─────────────────────────────────────────────
-//  API CALLS
+//  API
 // ─────────────────────────────────────────────
-async function apiGetLinks() {
+async function apiGet() {
   try {
     const res = await fetch(API_BASE, { headers: API_HEADERS });
-    if (!res.ok) throw new Error('API ' + res.status);
+    if (!res.ok) throw new Error(res.status);
     return await res.json();
-  } catch(e) {
-    showToast('Could not reach API: ' + e.message, 'error');
-    return null;
-  }
+  } catch(e) { showToast('API error: ' + e.message, 'error'); return null; }
 }
 
-async function apiPostLinks(links) {
+async function apiPost(links) {
   try {
-    const res = await fetch(API_BASE, {
-      method: 'POST',
-      headers: API_HEADERS,
-      body: JSON.stringify({ links })
-    });
-    if (!res.ok) throw new Error('API ' + res.status);
+    const res = await fetch(API_BASE, { method: 'POST', headers: API_HEADERS, body: JSON.stringify({ links }) });
+    if (!res.ok) throw new Error(res.status);
     return await res.json();
-  } catch(e) {
-    showToast('Save failed: ' + e.message, 'error');
-    return null;
-  }
+  } catch(e) { showToast('Save failed: ' + e.message, 'error'); return null; }
 }
 
-async function apiDeleteLink(linkCode) {
+async function apiDelete(linkCode) {
   try {
-    const res = await fetch(API_BASE + '?id=' + encodeURIComponent(linkCode), {
-      method: 'DELETE',
-      headers: API_HEADERS
-    });
-    if (!res.ok) throw new Error('API ' + res.status);
+    const res = await fetch(API_BASE + '?id=' + encodeURIComponent(linkCode), { method: 'DELETE', headers: API_HEADERS });
+    if (!res.ok) throw new Error(res.status);
     return true;
-  } catch(e) {
-    showToast('Delete failed: ' + e.message, 'error');
-    return false;
-  }
-}
-
-async function apiDeleteAll() {
-  // Delete all links one by one (no bulk delete endpoint)
-  const codes = state.links.map(l => l.linkCode);
-  for (const code of codes) {
-    await apiDeleteLink(code);
-  }
+  } catch(e) { showToast('Delete failed: ' + e.message, 'error'); return false; }
 }
 
 // ─────────────────────────────────────────────
@@ -877,10 +825,9 @@ async function apiDeleteAll() {
 // ─────────────────────────────────────────────
 async function loadLinks() {
   document.getElementById('stat-count').textContent = '…';
-  const data = await apiGetLinks();
+  const data = await apiGet();
   if (data !== null) {
     state.links = Array.isArray(data) ? data : [];
-    // Sort newest first
     state.links.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
   }
   updateStats();
@@ -1065,17 +1012,14 @@ document.getElementById('btn-cancel-commit').addEventListener('click', () => {
 document.getElementById('btn-commit').addEventListener('click', async () => {
   if (state.pendingLinks.length === 0) return;
   const btn = document.getElementById('btn-commit');
-  btn.textContent = 'SAVING…';
-  btn.disabled = true;
-  const result = await apiPostLinks(state.pendingLinks);
-  btn.textContent = 'COMMIT TO VAULT';
-  btn.disabled = false;
-  if (result === null) return; // error already toasted
+  btn.textContent = 'SAVING…'; btn.disabled = true;
+  const result = await apiPost(state.pendingLinks);
+  btn.textContent = 'COMMIT TO VAULT'; btn.disabled = false;
+  if (result === null) return;
   state.links.unshift(...state.pendingLinks);
   state.links.sort((a, b) => new Date(b.addedAt) - new Date(a.addedAt));
-  updateStats();
-  renderGrid();
-  showToast(`${state.pendingLinks.length} link${state.pendingLinks.length !== 1 ? 's' : ''} committed to vault`, 'success');
+  updateStats(); renderGrid();
+  showToast(`${state.pendingLinks.length} link${state.pendingLinks.length !== 1 ? 's' : ''} committed`, 'success');
   state.pendingLinks = [];
   previewPanel.style.display = 'none';
   extractorPanel.style.display = 'none';
@@ -1091,46 +1035,41 @@ function renderGrid() {
   const grid = document.getElementById('link-grid');
   grid.innerHTML = '';
   updateStats();
-
   if (state.links.length === 0) {
-    grid.innerHTML = `
-      <div id="empty-state">
-        <div class="empty-glyph">◈</div>
-        <div class="empty-title">The vault is empty</div>
-        <div class="empty-sub">PASTE LINKS ABOVE TO BEGIN</div>
-      </div>`;
+    grid.innerHTML = `<div id="empty-state">
+      <div class="empty-glyph">◈</div>
+      <div class="empty-title">The vault is empty</div>
+      <div class="empty-sub">PASTE LINKS ABOVE TO BEGIN</div>
+    </div>`;
     return;
   }
+  // Header row
+  const hdr = document.createElement('div');
+  hdr.className = 'list-header';
+  hdr.innerHTML = `<span>GAME ID</span><span>URL</span><span>LINK CODE</span><span>STATUS</span><span></span>`;
+  grid.appendChild(hdr);
 
   state.links.forEach((link, idx) => {
-    const card = document.createElement('div');
-    card.className = 'link-card';
-    card.dataset.code = link.linkCode;
-    const date = new Date(link.addedAt).toLocaleDateString('en-US', {month:'short',day:'numeric'});
-    const urlShort = link.fullUrl.length > 52 ? link.fullUrl.slice(0, 52) + '…' : link.fullUrl;
-    const codeShort = link.linkCode.length > 22 ? link.linkCode.slice(0, 22) + '…' : link.linkCode;
+    const row = document.createElement('div');
+    row.className = 'link-row';
+    row.dataset.code = link.linkCode;
     const statusClass = link.status === 'active' ? 'status-active' : 'status-unknown';
     const statusLabel = link.status === 'active' ? 'ACTIVE' : 'UNKNOWN';
-    card.innerHTML = `
-      <div class="card-top">
-        <span class="card-url" title="${link.fullUrl}">${urlShort}</span>
-        <span class="card-status ${statusClass}">${statusLabel}</span>
-      </div>
-      <div class="card-middle">
-        <span class="chip chip-game">ID ${link.gameId}</span>
-        <span class="chip chip-code" title="${link.linkCode}">${codeShort}</span>
-      </div>
-      <div class="card-bottom">
-        <span class="card-date">${date}</span>
-        <button class="btn-remove" data-code="${link.linkCode}">REMOVE</button>
-      </div>
+    const codeShort = link.linkCode.length > 18 ? link.linkCode.slice(0,18)+'…' : link.linkCode;
+    const urlShort = link.fullUrl.replace('https://www.roblox.com/games/','roblox.com/…/');
+    row.innerHTML = `
+      <span class="row-gameid">${link.gameId}</span>
+      <span class="row-url" title="${link.fullUrl}">${urlShort}</span>
+      <span class="row-code" title="${link.linkCode}">${codeShort}</span>
+      <span class="row-status ${statusClass}">${statusLabel}</span>
+      <button class="btn-remove" data-code="${link.linkCode}">✕</button>
     `;
-    card.querySelector('.btn-remove').addEventListener('click', (e) => {
+    row.querySelector('.btn-remove').addEventListener('click', e => {
       e.stopPropagation();
       confirmRemove(link.linkCode);
     });
-    card.style.animationDelay = (idx * 0.03) + 's';
-    grid.appendChild(card);
+    row.style.animationDelay = (idx * 0.015) + 's';
+    grid.appendChild(row);
   });
 }
 
@@ -1143,15 +1082,13 @@ function confirmRemove(linkCode) {
 }
 
 function removeLink(linkCode) {
-  const card = document.querySelector(`.link-card[data-code="${linkCode}"]`);
-  if (card) card.classList.add('removing');
-  // Optimistic removal
+  const row = document.querySelector(`.link-row[data-code="${linkCode}"]`);
+  if (row) row.classList.add('removing');
   state.links = state.links.filter(l => l.linkCode !== linkCode);
   updateStats();
-  setTimeout(() => renderGrid(), 250);
-  // Fire API delete in background
-  apiDeleteLink(linkCode);
-  showToast('Link removed from vault', 'info');
+  setTimeout(() => renderGrid(), 200);
+  apiDelete(linkCode);
+  showToast('Link removed', 'info');
 }
 
 // ─────────────────────────────────────────────
@@ -1187,21 +1124,20 @@ document.getElementById('nav-export').addEventListener('click', () => {
 
 document.getElementById('nav-clear').addEventListener('click', () => {
   if (state.links.length === 0) { showToast('Vault is already empty', 'info'); return; }
-  showModal(
-    'Purge All Links',
-    `You are about to permanently delete all ${state.links.length} links from the vault. This cannot be undone.`,
+  showModal('Purge All Links',
+    `Delete all ${state.links.length} links? This cannot be undone.`,
     async () => {
-      await apiDeleteAll();
+      const codes = state.links.map(l => l.linkCode);
+      for (const code of codes) await apiDelete(code);
       state.links = [];
-      updateStats();
-      renderGrid();
+      updateStats(); renderGrid();
       showToast('Vault purged', 'info');
     }
   );
 });
 
 document.getElementById('btn-refresh').addEventListener('click', async () => {
-  showToast('Syncing with vault…', 'info');
+  showToast('Syncing…', 'info');
   await loadLinks();
   renderGrid();
   showToast('Vault synced', 'success');
@@ -1250,10 +1186,7 @@ function showToast(msg, type = 'info') {
 // ─────────────────────────────────────────────
 //  INIT
 // ─────────────────────────────────────────────
-(async () => {
-  await loadLinks();
-  renderGrid();
-})();
+(async () => { await loadLinks(); renderGrid(); })();
 </script>
 </body>
 </html>
