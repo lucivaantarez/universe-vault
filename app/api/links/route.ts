@@ -16,7 +16,10 @@ const CORS = {
 async function redisCmd(command: any[]) {
   const res = await fetch(REDIS_URL, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${REDIS_TOKEN}`, 'Content-Type': 'application/json' },
+    headers: {
+      Authorization: `Bearer ${REDIS_TOKEN}`,
+      'Content-Type': 'application/json',
+    },
     body: JSON.stringify(command),
   })
   return res.json()
